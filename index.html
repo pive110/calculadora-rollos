@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Calculadora de Rollos</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#222222">
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #eeeeee;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .calculadora {
+            max-width: 500px;
+            margin: 20px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 25px;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 16px;
+            font-size: 22px;
+            border: 2px solid #999;
+            border-radius: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            margin-top: 25px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            background: #222222;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .resultado {
+            margin-top: 25px;
+            padding: 20px;
+            background: #eeeeee;
+            border-radius: 10px;
+        }
+
+        .fila {
+            margin-bottom: 20px;
+        }
+
+        .titulo {
+            font-size: 14px;
+            font-weight: bold;
+            color: #555555;
+        }
+
+        .numero {
+            font-size: 35px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="calculadora">
+
+    <h1>CALCULADORA DE ROLLOS</h1>
+
+
+    <label>
+        Cantidad total de etiquetas
+    </label>
+
+    <input
+        id="total"
+        type="number"
+        placeholder="Ej. 300000"
+    >
+
+
+    <label>
+        Máximo de etiquetas por rollo
+    </label>
+
+    <input
+        id="maximo"
+        type="number"
+        placeholder="Ej. 12500"
+    >
+
+
+    <button onclick="calcular()">
+        CALCULAR
+    </button>
+
+
+    <div class="resultado">
+
+        <div class="fila">
+
+            <div class="titulo">
+                ETIQUETAS POR ROLLO
+            </div>
+
+            <div id="resultado" class="numero">
+                —
+            </div>
+
+        </div>
+
+
+        <div class="fila">
+
+            <div class="titulo">
+                NÚMERO DE ROLLOS
+            </div>
+
+            <div id="rollos" class="numero">
+                —
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function calcular() {
+
+    const total = Number(
+        document.getElementById("total").value
+    );
+
+    const maximo = Number(
+        document.getElementById("maximo").value
+    );
+
+
+    if (total <= 0 || maximo <= 0) {
+
+        alert("Introduce dos cantidades válidas.");
+
+        return;
+
+    }
+
+
+    if (maximo > total) {
+
+        alert(
+            "El máximo por rollo no puede ser mayor que el total."
+        );
+
+        return;
+
+    }
+
+
+    let mejor = 1;
+
+
+    /*
+       Buscamos el divisor más grande
+       de TOTAL que no supere MAXIMO.
+    */
+
+    for (let i = 1; i * i <= total; i++) {
+
+        if (total % i === 0) {
+
+            let divisor1 = i;
+
+            let divisor2 = total / i;
+
+
+            if (divisor1 <= maximo && divisor1 > mejor) {
+
+                mejor = divisor1;
+
+            }
+
+
+            if (divisor2 <= maximo && divisor2 > mejor) {
+
+                mejor = divisor2;
+
+            }
+
+        }
+
+    }
+
+
+    const numeroRollos = total / mejor;
+
+
+    document.getElementById("resultado").textContent =
+        mejor.toLocaleString("es-ES");
+
+
+    document.getElementById("rollos").textContent =
+        numeroRollos.toLocaleString("es-ES");
+
+}
+
+</script>
+
+<script>
+
+if ("serviceWorker" in navigator) {
+
+    navigator.serviceWorker.register("service-worker.js")
+        .then(function() {
+            console.log("Service Worker registrado");
+        })
+        .catch(function(error) {
+            console.log("Error:", error);
+        });
+
+}
+
+</script>
+
+</body>
+
+</html>
