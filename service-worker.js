@@ -1,8 +1,11 @@
-const CACHE_NAME = "calculadora-rollos-v1";
+const CACHE_NAME = "label-roll-calculator-v2";
 
 const ARCHIVOS = [
     "./",
-    "./index.html"
+    "./index.html",
+    "./manifest.json",
+    "./icon-180.png",
+    "./icon-512.png"
 ];
 
 self.addEventListener("install", function(event) {
@@ -18,7 +21,6 @@ self.addEventListener("install", function(event) {
     );
 
 });
-
 
 self.addEventListener("fetch", function(event) {
 
