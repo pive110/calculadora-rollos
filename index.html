@@ -100,7 +100,7 @@ button:active{transform:scale(.98)}
   </div>
 </div>
 
-<button onclick="calcular()">CALCULAR</button>
+<button type="button" onclick="calcular()">CALCULAR</button>
 <div id="error" class="error"></div>
 
 <div class="resultado">
@@ -147,22 +147,20 @@ function calcular(){
   const e=n("espesor"), Di=n("mandril"), Dmax=n("diamMax");
   const L=n("cajaL"), A=n("cajaA"), H=n("cajaH"), Ar=n("anchoRollo");
 
-  
-
-if (
-  !Number.isInteger(total) || total <= 0 ||
-  !Number.isFinite(Av) || Av <= 0 ||
-  document.getElementById("separacion").value.trim() === "" ||
-  !Number.isFinite(S) || S < 0 ||
-  !Number.isFinite(e) || e <= 0 ||
-  !Number.isFinite(Di) || Di <= 0 ||
-  !Number.isFinite(Dmax) || Dmax <= 0
-) {
-  error.textContent = "Revisa los datos introducidos.";
-  error.style.display = "block";
-  return;
-}
-
+  if (
+    ["total", "avance", "separacion", "espesor", "mandril", "diamMax"].some(
+      id => document.getElementById(id).value.trim() === ""
+    ) ||
+    !Number.isSafeInteger(total) || total <= 0 ||
+    !Number.isFinite(Av) || Av <= 0 ||
+    !Number.isFinite(S) || S < 0 ||
+    !Number.isFinite(e) || e <= 0 ||
+    !Number.isFinite(Di) || Di <= 0 ||
+    !Number.isFinite(Dmax) || Dmax <= 0
+  ) {
+    error.textContent = "Revisa los datos: la separación puede ser 0 mm; los demás campos de producción deben ser positivos.";
+    error.style.display = "block";
+    return;
   }
   if(Dmax<=Di){
     error.textContent="El diámetro máximo debe ser mayor que el diámetro del mandril.";
@@ -218,9 +216,16 @@ if (
   document.getElementById("nota").textContent=texto;
 }
 
+window.addEventListener("error", () => {
+  const error = document.getElementById("error");
+  error.textContent = "Error de aplicación. Recarga la página y vuelve a intentarlo.";
+  error.style.display = "block";
+});
+
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("service-worker.js").catch(()=>{});
 }
 </script>
 </body>
 </html>
+
