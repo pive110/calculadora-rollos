@@ -147,9 +147,22 @@ function calcular(){
   const e=n("espesor"), Di=n("mandril"), Dmax=n("diamMax");
   const L=n("cajaL"), A=n("cajaA"), H=n("cajaH"), Ar=n("anchoRollo");
 
-  if([total,Av,S,e,Di,Dmax].some(x=>!Number.isFinite(x)||x<=0)){
-    error.textContent="Completa todos los datos de producción con valores mayores que cero.";
-    error.style.display="block"; return;
+  
+if (
+  !Number.isInteger(total) ||
+  total <= 0 ||
+  !Number.isFinite(Av) || Av <= 0 ||
+  !Number.isFinite(S) || S < 0 ||
+  !Number.isFinite(e) || e <= 0 ||
+  !Number.isFinite(Di) || Di <= 0 ||
+  !Number.isFinite(Dmax) || Dmax <= 0
+) {
+  error.textContent =
+    "Comprueba los datos. La separación puede ser 0 mm, pero el resto de valores deben ser mayores que cero.";
+  error.style.display = "block";
+  return;
+}
+
   }
   if(Dmax<=Di){
     error.textContent="El diámetro máximo debe ser mayor que el diámetro del mandril.";
