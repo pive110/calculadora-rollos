@@ -148,17 +148,17 @@ function calcular(){
   const L=n("cajaL"), A=n("cajaA"), H=n("cajaH"), Ar=n("anchoRollo");
 
   
+
 if (
-  !Number.isInteger(total) ||
-  total <= 0 ||
+  !Number.isInteger(total) || total <= 0 ||
   !Number.isFinite(Av) || Av <= 0 ||
+  document.getElementById("separacion").value.trim() === "" ||
   !Number.isFinite(S) || S < 0 ||
   !Number.isFinite(e) || e <= 0 ||
   !Number.isFinite(Di) || Di <= 0 ||
   !Number.isFinite(Dmax) || Dmax <= 0
 ) {
-  error.textContent =
-    "Comprueba los datos. La separación puede ser 0 mm, pero el resto de valores deben ser mayores que cero.";
+  error.textContent = "Revisa los datos introducidos.";
   error.style.display = "block";
   return;
 }
