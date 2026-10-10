@@ -34,6 +34,17 @@ button:active{transform:scale(.98)}
 .nota{margin-top:13px;font-size:12px;color:#666;line-height:1.4}
 .error{margin-top:15px;padding:12px;background:#ffe1e1;color:#9b0000;border-radius:8px;font-weight:bold;display:none}
 @media(max-width:520px){.grid,.result-grid{grid-template-columns:1fr}.calculadora{padding:18px}body{padding:8px}}
+
+/* Integración visual aislada: no interviene en los cálculos */
+.vista-btn{background:#e30613;margin-top:14px;font-size:16px;display:none}
+.vista-btn:focus-visible,.vista-close:focus-visible{outline:3px solid #e30613;outline-offset:3px}
+.vista-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.84);padding:12px;align-items:center;justify-content:center}
+.vista-overlay.abierto{display:flex}
+.vista-dialogo{width:min(100%,940px);height:min(92dvh,900px);background:#101014;border:1px solid #444;border-radius:13px;display:flex;flex-direction:column;overflow:hidden}
+.vista-cabecera{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;color:#fff;background:#18181b;font-size:16px;font-weight:bold}
+.vista-close{width:45px;min-height:45px;margin:0;padding:0;background:#333;color:white;font-size:25px;border-radius:8px}
+#visor3d{width:100%;flex:1;min-height:0;border:0;background:#0b0b0d}
+body.vista-abierta{overflow:hidden}
 </style>
 </head>
 <body>
@@ -115,11 +126,49 @@ button:active{transform:scale(.98)}
   <div class="card"><div class="titulo">Nº DE CAJAS</div><div id="rCajas" class="numero">—</div></div>
   <div class="card"><div class="titulo">ETIQUETAS PRODUCIDAS</div><div id="rProducidas" class="numero">—</div></div>
 </div>
-<div id="nota" class="nota"></div>
+ <div id="nota" class="nota"></div>
+ <button id="abrirVista" class="vista-btn" type="button" onclick="abrirVista()">◈ VISTA 3D</button>
 </div>
 </div>
 
+<div class="vista-overlay" id="overlayVista" role="presentation">
+  <div class="vista-dialogo" role="dialog" aria-modal="true" aria-label="Vista isométrica del embalaje">
+    <div class="vista-cabecera"><span>VISTA 3D · EMBALAJE</span><button class="vista-close" id="cerrarVista" type="button" onclick="cerrarVista()" aria-label="Cerrar vista">×</button></div>
+    <iframe id="visor3d" title="Animación isométrica de la caja" src="visor-3d.html"></iframe>
+  </div>
+</div>
 <script>
+let embalajeParaVista=null;
+let botonAnterior=null;
+function abrirVista(){
+  if(!embalajeParaVista)return;
+  botonAnterior=document.activeElement;
+  const overlay=document.getElementById('overlayVista');
+  overlay.classList.add('abierto');
+  document.body.classList.add('vista-abierta');
+  document.getElementById('cerrarVista').focus();
+  enviarDatosVista();
+}
+function enviarDatosVista(){
+  const frame=document.getElementById('visor3d');
+  if(embalajeParaVista && frame.contentWindow){
+    frame.contentWindow.postMessage({tipo:'LABEL_ROLL_VISTA',datos:embalajeParaVista},'*');
+  }
+}
+function cerrarVista(){
+  document.getElementById('overlayVista').classList.remove('abierto');
+  document.body.classList.remove('vista-abierta');
+  // Paramos cualquier animación al ocultar la vista.
+  const frame=document.getElementById('visor3d');
+  if(frame.contentWindow)frame.contentWindow.postMessage({tipo:'LABEL_ROLL_STOP'},'*');
+  if(botonAnterior && botonAnterior.focus)botonAnterior.focus();
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && document.getElementById('overlayVista').classList.contains('abierto'))cerrarVista();
+});
+window.addEventListener('load',()=>{
+  document.getElementById('visor3d').addEventListener('load',enviarDatosVista);
+});
 function n(id){ return Number(document.getElementById(id).value); }
 function fmt(x,dec=2){ return Number(x).toLocaleString("es-ES",{minimumFractionDigits:dec,maximumFractionDigits:dec}); }
 function fmt0(x){ return Math.round(x).toLocaleString("es-ES"); }
@@ -142,6 +191,8 @@ function mayorDivisor(total,maximo){
 function calcular(){
   const error=document.getElementById("error");
   error.style.display="none";
+  embalajeParaVista=null;
+  document.getElementById('abrirVista').style.display='none';
 
   const total=n("total"), Av=n("avance"), S=n("separacion");
   const e=n("espesor"), Di=n("mandril"), Dmax=n("diamMax");
@@ -200,6 +251,13 @@ function calcular(){
     */
     rollosCaja=Math.floor(L/Df)*Math.floor(A/Df)*Math.floor(H/Ar);
     cajas=rollosCaja>0 ? Math.ceil(rollos/rollosCaja) : "—";
+    // Solo enviamos a la vista la distribución YA calculada por la calculadora.
+    // No se aplica aquí un segundo algoritmo ni holguras nuevas.
+    const nx=Math.floor(L/Df),ny=Math.floor(A/Df),nz=Math.floor(H/Ar);
+    if(rollosCaja>0 && rollosCaja<=300 && Di<Df){
+      embalajeParaVista={L,A,H,D:Df,Ar,Di,nx,ny,nz,total:rollosCaja};
+      document.getElementById('abrirVista').style.display='block';
+    }
   }
 
   document.getElementById("rEtiquetas").textContent=fmt0(etiquetas);
@@ -212,6 +270,7 @@ function calcular(){
   document.getElementById("rProducidas").textContent=fmt0(etiquetas*rollos);
 
   let texto="Selección automática: mayor divisor de la cantidad total que no supera el máximo físico permitido por el diámetro.";
+  if(typeof rollosCaja==='number' && rollosCaja>300) texto+=' La vista 3D de prueba admite hasta 300 rollos por caja.';
   if(rollosCaja===0) texto+=" Con las dimensiones indicadas no cabe ningún rollo en la caja.";
   document.getElementById("nota").textContent=texto;
 }
@@ -228,4 +287,3 @@ if("serviceWorker" in navigator){
 </script>
 </body>
 </html>
-
